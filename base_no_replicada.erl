@@ -1,9 +1,11 @@
 %%% Módulo: base_no_replicada.erl
 %%% Implementación de un diccionario en memoria con manejo de timestamps y operaciones concurrentes.
+%%% Incluye pruebas EUnit integradas.
 
 -module(base_no_replicada).
 -export([start/1, stop/0, put/3, remove/2, get/1, size/0]).
 -export([servidor/1]). % Para uso interno
+-include_lib("eunit/include/eunit.hrl").
 
 %% Nombre de la tabla ETS para almacenar el nombre del servidor activo.
 -define(SERVER_TABLE, base_no_replicada_server).
@@ -184,3 +186,77 @@ handle_get(Key, Dict) ->
 %% Handler para operaciones SIZE.
 handle_size(Dict) ->
     maps:fold(fun(_, {value, _, _}, Acc) -> Acc + 1; (_, _, Acc) -> Acc end, 0, Dict).
+
+%%---------------------------------------------------------------------
+%% Pruebas EUnit
+%%---------------------------------------------------------------------
+
+basic_test_() ->
+    {setup,
+     fun setup/0,          % Función de configuración
+     fun cleanup/1,        % Función de limpieza
+     {inorder,
+      [ fun put_new_key/0,
+        fun put_older_timestamp/0,
+        fun put_newer_timestamp/0,
+        fun remove_existing_key/0,
+        fun remove_nonexistent_key/0,
+        fun remove_older_timestamp/0,
+        fun get_removed_key/0,
+        fun get_nonexistent_key/0,
+        fun size_operations/0
+      ]
+     }
+    }.
+
+%%% Configuración antes de ejecutar las pruebas
+setup() ->
+    ensure_ets_table(),
+    {ok, _Pid} = start(test_server),
+    ok.
+
+%%% Limpieza después de ejecutar las pruebas
+cleanup(_) ->
+    stop(),
+    ets:delete(?SERVER_TABLE).
+
+%% Test 2: Insertar nueva clave
+put_new_key() ->
+    ?assertEqual(ok, put(key1, value1, 100)),
+    ?assertMatch({ok, value1, 100}, base_no_replicada:get(key1)).
+
+%% Test 3: Insertar con timestamp menor (debe fallar)
+put_older_timestamp() ->
+    ?assertEqual(ko, put(key1, value2, 50)).
+
+%% Test 4: Insertar con timestamp mayor (debe actualizar)
+put_newer_timestamp() ->
+    ?assertEqual(ok, put(key1, value3, 150)),
+    ?assertMatch({ok, value3, 150}, base_no_replicada:get(key1)).
+
+%% Test 5: Eliminar clave existente
+remove_existing_key() ->
+    ?assertEqual(ok, remove(key1, 200)),
+    ?assertMatch({ko, 200}, base_no_replicada:get(key1)).
+
+%% Test 6: Eliminar clave inexistente
+remove_nonexistent_key() ->
+    ?assertEqual(notfound, remove(key2, 100)).
+
+%% Test 7: Eliminar con timestamp menor
+remove_older_timestamp() ->
+    ?assertEqual(notfound, remove(key1, 150)).
+
+%% Test 8: Obtener clave eliminada
+get_removed_key() ->
+    ?assertMatch({ko, 200}, base_no_replicada:get(key1)).
+
+%% Test 9: Obtener clave inexistente
+get_nonexistent_key() ->
+    ?assertEqual(notfound, base_no_replicada:get(key3)).
+
+%% Test 10: Verificar tamaño del diccionario
+size_operations() ->
+    ?assertEqual(0, size()),             % Después de eliminar key1
+    ?assertEqual(ok, put(key4, val4, 300)),
+    ?assertEqual(1, size()).

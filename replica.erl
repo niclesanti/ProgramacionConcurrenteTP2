@@ -137,12 +137,18 @@ handle_coordinacion_remove(Key, Ts, Consistencia, Coordinador, OtrasReplicas, Fr
                 all -> length(AllReplicas)
             end,
             Responses = collect_responses(remove_response, length(AllReplicas), Required),
-            Oks = [R || R <- Responses, R =:= ok],
             if
-                length(Oks) >= Required -> From ! ok;
-                true -> From ! ko
+                length(Responses) >= Required ->
+                    %% Si al menos una respuesta es ok, devolvemos ok; de lo contrario, notfound.
+                    case lists:any(fun(R) -> R =:= ok end, Responses) of
+                        true -> From ! ok;
+                        false -> From ! notfound
+                    end;
+                true ->
+                    From ! ko
             end
     end.
+
 
 %% GET: Coordinación según nivel de consistencia.
 handle_coordinacion_get(Key, Consistencia, Coordinador, OtrasReplicas, From, Dict) ->
