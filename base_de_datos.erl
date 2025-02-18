@@ -1,3 +1,11 @@
+%%% Módulo: base_de_datos.erl
+%%% Este módulo es responsable de la creación y gestión de las réplicas.
+
+%%% INTEGRANTES:
+%%% - Lazzarini Bautista.
+%%% - Nicle Santiago.
+%%% - Ramella Sebastian.
+
 -module(base_de_datos).
 -export([start/2, stop/0]).
 

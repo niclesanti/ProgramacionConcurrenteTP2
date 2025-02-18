@@ -1,5 +1,17 @@
+%%% Módulo: replica.erl
+%%% Este módulo es responsable de las operaciones que puede realizar cada replica.
+
+%%% INTEGRANTES:
+%%% - Lazzarini Bautista.
+%%% - Nicle Santiago.
+%%% - Ramella Sebastian.
+
 -module(replica).
 -export([start/2, stop/1, put/5, remove/4, get/3]).
+
+%% ---------------------------------------------------------------------
+%% Operaciones start/2 y stop/1 que utiliza el modulo base_de_datos.erl
+%% ---------------------------------------------------------------------
 
 %% Inicia una réplica con un nombre y lista de réplicas restantes.
 start(Nombre, OtrasReplicas) ->
@@ -13,6 +25,10 @@ stop(Nombre) ->
         undefined -> ok;
         Pid -> Pid ! stop, ok
     end.
+
+%% ---------------------------------------------------------------------
+%% API publica para operaciones PUT, REMOVE y GET
+%% ---------------------------------------------------------------------
 
 %% PUT: Clave, Valor, Timestamp, Consistencia, Coordinador.
 put(Key, Value, Ts, Consistencia, Coordinador) ->
@@ -30,7 +46,6 @@ get(Key, Consistencia, Coordinador) ->
     receive_response().
 
 %% Servidor principal de la réplica.
-%% Servidor principal de la réplica (versión corregida).
 servidor(Nombre, OtrasReplicas, Dict) ->
     receive
         %% ----------- PUT -----------

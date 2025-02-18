@@ -1,6 +1,11 @@
 %%% Module: replicadb_test.erl
 %%% Test EUnit para la base de datos NoSQL replicada (módulos base_de_datos y replica).
 
+%%% INTEGRANTES:
+%%% - Lazzarini Bautista.
+%%% - Nicle Santiago.
+%%% - Ramella Sebastian.
+
 -module(replicadb_test).
 -include_lib("eunit/include/eunit.hrl").
 
