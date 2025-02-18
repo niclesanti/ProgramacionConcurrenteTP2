@@ -1,6 +1,11 @@
 %%% Módulo: base_no_replicada.erl
 %%% Implementación de un diccionario en memoria con manejo de timestamps y operaciones concurrentes.
-%%% Incluye pruebas EUnit integradas.
+%%% Incluye pruebas EUnit.
+
+%%% INTEGRANTES:
+%%% - Lazzarini Bautista.
+%%% - Nicle Santiago.
+%%% - Ramella Sebastian.
 
 -module(base_no_replicada).
 -export([start/1, stop/0, put/3, remove/2, get/1, size/0]).
